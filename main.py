@@ -145,6 +145,9 @@ class WindowsViz:
     
     # Afficher l'objet
     def afficher_objet(self): 
+
+        plt.cla()
+
         self.afficher_profil("grey")
         if self.__dispVec: 
             self.afficher_vitesse()
@@ -153,9 +156,14 @@ class WindowsViz:
         if self.__dispCellule: 
             self.afficher_cellules("blue")
 
-        print([min(self.__coords[:, 0]), max(self.__coords[:, 0]), min(self.__coords[:, 1]), max(self.__coords[:, 1])])
+        #print([min(self.__coords[:, 0]), max(self.__coords[:, 0]), min(self.__coords[:, 1]), max(self.__coords[:, 1])])
         ax.set_xlim(-1, 1)
         ax.set_ylim(-1, 1)
+
+        # draw lines
+        self.calcul_lignes()
+
+        plt.title('Visualisation: M=Grid, C=CellsCandidates, V=Vitesses, R=Reset, Click=Drop')
         plt.show()
 
     # calcul_lignes
@@ -164,7 +172,7 @@ class WindowsViz:
         u, v = self.__values[:, 0], self.__values[:, 1]
         
         nx, ny = len(x), len(y)
-        xr = np.linspace(x.min(), y.max(), nx)
+        xr = np.linspace(x.min(), x.max(), nx)
         yr = np.linspace(y.min(), y.max(), ny)
 
         xs, ys = np.meshgrid(xr, yr)
@@ -174,12 +182,8 @@ class WindowsViz:
         us = griddata((px, py), pu, (xs, ys))
         vs = griddata((px, py), pv, (xs, ys))
 
-        print(np.shape(xs))
-
-        dropPoints = None if len(self.__dropPoints) == 0 else self.__dropPoints
-        print(dropPoints)
-
-        ax.streamplot(xs, ys, us, vs, start_points=dropPoints, color="crimson", linewidth=2)
+        if(len(self.__dropPoints) > 0):
+            ax.streamplot(xs, ys, us, vs, start_points=self.__dropPoints, color="crimson", linewidth=2)
 
     def add_drop_point(self, dropPoint):
         x, y = dropPoint
@@ -217,15 +221,13 @@ def evt_on_button_pressed(event, windows: WindowsViz):
         windows.clearDropPoints()
 
     # Display
-    plt.cla()
     windows.afficher_objet()
 
 def evt_on_mouse_pressed(event, windows: WindowsViz):
     dropPoint = (event.xdata, event.ydata)
     print("Particule lâchée à ", dropPoint)
     windows.add_drop_point(dropPoint)
-    windows.calcul_lignes()
-
+    windows.afficher_objet()
 
 if __name__ == "__main__":
     # execute only if run as a script
